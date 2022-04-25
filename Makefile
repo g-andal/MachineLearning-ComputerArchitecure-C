@@ -5,6 +5,6 @@ ml: ml.o
 ml.o: ml.c
 	$(CC) $(CFLAGS) -c $<
 clean:
-	rm -f -r list
+	rm -f -r ml
 	rm -f -r *.o
 	clear
