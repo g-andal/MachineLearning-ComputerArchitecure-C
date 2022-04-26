@@ -7,7 +7,9 @@ typedef struct{
 }Matrix;
 
 Matrix read_file(FILE*);
-void init_inverse(Matrix);
+Matrix init_inverse(int);
+Matrix transpose(Matrix);
+Matrix multiply(Matrix, Matrix);
 void printMat(Matrix);
 
 int main(int argc, char *argv[]){
@@ -18,15 +20,15 @@ int main(int argc, char *argv[]){
     }
 
     Matrix original = read_file(fp);
-    
-    Matrix inverse;
-    inverse.r = original.r;
-    inverse.c = original.c;
-    init_inverse(inverse);
+    Matrix tr = transpose(original);
+    Matrix mult = multiply(original,tr);
 
     printMat(original);
     printf("\n");
-    printMat(inverse);
+    printMat(tr);
+    printf("\n");
+    printf("%d   %d\n", mult.r, mult.c);
+    printMat(mult);
 
     return 0;
 }
@@ -37,7 +39,7 @@ Matrix read_file(FILE* fp){
     fscanf(fp, "%d", &(og.r));
     og.c++;
 
-    og.values = malloc(sizeof(float)*(og.r));
+    og.values = malloc(sizeof(float*)*(og.r));
     for (int i = 0; i < og.r; i++)
         og.values[i] = malloc((og.c) * sizeof(float));
     
@@ -48,8 +50,15 @@ Matrix read_file(FILE* fp){
     return og;
 }
 
-void init_inverse(Matrix in){
-    in.values = malloc(sizeof(float)*in.r);
+Matrix init_inverse(int n){
+    Matrix in;
+    in.r = n;
+    in.c = n;
+
+    in.values = malloc(sizeof(float*)*in.r);
+    for (int i = 0; i < in.r; i++)
+        in.values[i] = malloc((in.c) * sizeof(float));
+
     for (int i = 0; i < in.r; i++)
         for (int j = 0; j < in.c; j++){
             if (i==j)
@@ -57,35 +66,47 @@ void init_inverse(Matrix in){
             else
                 in.values[i][j] = 0;
         }
+    return in;
 }
 
-// void findInverse(){
-//     float** copy = malloc((c) * sizeof(float));
-//     for (int i = 0; i < r; i++)
-//         values[i] = malloc((c) * sizeof(float));
+Matrix transpose(Matrix mat){
+    Matrix tr;
+    tr.r = mat.c;
+    tr.c = mat.r;
 
-//     for (int i = 0; i < r; i++)
-//         for (int j = 0; j < c; j++)
-//             copy[i][j] = values[i][j];
-
+    tr.values = malloc(sizeof(float*)*tr.r);
+    for (int i = 0; i < tr.r; i++)
+        tr.values[i] = malloc((tr.c) * sizeof(float));
     
-// }
+    for (int i = 0; i < tr.r; i++)
+        for (int j = 0; j < tr.c; j++)
+            tr.values[i][j] = mat.values[j][i];
+    
+    return tr;
 
-// // rows of 1st x cols of 2nd
-// float** multMat(float** matA, float** matB){
-//     float** result = malloc((c) * sizeof(float));
-// }
+}
 
-// void mult_row(int* row, int num){
-//     for (int i = 0; i < ; i++)
-//         row[i] *= num;
-// }
+Matrix multiply(Matrix A, Matrix B){
+    Matrix result;
+    result.r = A.r;
+    result.c = B.c;
 
-// void mult_row(int* row, int num){
-//     for (int i = 0; i < examples; i++)
-//         for (int j = 0; j < attributes+1; j++)
-//             row[i] *= num;
-// }
+    result.values = malloc(sizeof(float*)*result.r);
+    for (int i = 0; i < result.r; i++)
+        result.values[i] = malloc((result.c) * sizeof(float));
+    
+    for (int i = 0; i < result.r; i++)
+        for (int j = 0; j < result.c; j++){
+            result.values[i][j] = 0;
+            for (int x = 0; x < B.r; x++)
+                result.values[i][j] += (A.values[i][x] * B.values[x][j]);
+        }
+
+    return result;
+
+
+
+}
 
 void printMat(Matrix mat){
     for (int i = 0; i < mat.r; i++){
